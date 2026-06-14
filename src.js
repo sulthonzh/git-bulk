@@ -1,17 +1,7 @@
 import { execSync } from "node:child_process";
-import { readdirSync, statSync, existsSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
 
-/**
- * git-bulk: Run git commands across multiple repos at once.
- */
-
-// --- Discovery ---
-
-/**
- * Find all git repos under a root directory (non-recursive by default).
- * A directory is a git repo if it contains a `.git` folder.
- */
 export function findRepos(root, { depth = 1, ignore = [] } = {}) {
   const repos = [];
   const cwd = resolve(root);
@@ -41,17 +31,12 @@ export function findRepos(root, { depth = 1, ignore = [] } = {}) {
   return repos.sort();
 }
 
-/**
- * Resolve target repos from --repos flag or auto-discovery.
- */
 export function resolveRepos({ root, repos: explicitRepos, depth, ignore }) {
   if (explicitRepos && explicitRepos.length > 0) {
     return explicitRepos.map((r) => resolve(r));
   }
   return findRepos(root || ".", { depth: depth || 1, ignore: ignore || [] });
 }
-
-// --- Git helpers ---
 
 function git(repoPath, ...args) {
   try {
@@ -66,11 +51,6 @@ function git(repoPath, ...args) {
   }
 }
 
-// --- Commands ---
-
-/**
- * Get repo status (branch, dirty, ahead/behind, untracked).
- */
 export function repoStatus(repoPath) {
   const branch = git(repoPath, "rev-parse", "--abbrev-ref", "HEAD");
   const porcelain = git(repoPath, "status", "--porcelain");
@@ -94,8 +74,8 @@ export function repoStatus(repoPath) {
     }
   }
 
-  const hasRemote =
-    git(repoPath, "remote") !== null && git(repoPath, "remote").length > 0;
+  const remote = git(repoPath, "remote");
+  const hasRemote = remote !== null && remote.length > 0;
 
   return {
     path: repoPath,
@@ -109,9 +89,6 @@ export function repoStatus(repoPath) {
   };
 }
 
-/**
- * Pull latest for a repo.
- */
 export function repoPull(repoPath) {
   const result = git(repoPath, "pull", "--rebase");
   return {
@@ -122,9 +99,6 @@ export function repoPull(repoPath) {
   };
 }
 
-/**
- * Fetch all remotes for a repo.
- */
 export function repoFetch(repoPath) {
   const result = git(repoPath, "fetch", "--all", "--prune");
   return {
@@ -135,9 +109,6 @@ export function repoFetch(repoPath) {
   };
 }
 
-/**
- * Get current branch name.
- */
 export function repoBranch(repoPath) {
   const branch = git(repoPath, "rev-parse", "--abbrev-ref", "HEAD");
   return {
@@ -147,9 +118,6 @@ export function repoBranch(repoPath) {
   };
 }
 
-/**
- * List branches for a repo.
- */
 export function repoBranches(repoPath) {
   const raw = git(repoPath, "branch", "-a");
   if (!raw) return { path: repoPath, name: basename(repoPath), branches: [] };
@@ -160,9 +128,6 @@ export function repoBranches(repoPath) {
   return { path: repoPath, name: basename(repoPath), branches };
 }
 
-/**
- * Run an arbitrary git command in a repo.
- */
 export function repoRun(repoPath, cmd) {
   const result = git(repoPath, ...cmd.split(/\s+/));
   return {
@@ -173,15 +138,10 @@ export function repoRun(repoPath, cmd) {
   };
 }
 
-/**
- * Check if a repo has uncommitted changes.
- */
 export function repoIsDirty(repoPath) {
   const porcelain = git(repoPath, "status", "--porcelain");
   return porcelain !== null && porcelain.length > 0;
 }
-
-// --- Formatting ---
 
 const STATUS_ICONS = {
   clean: "✓",
@@ -246,8 +206,6 @@ export function formatMarkdown(repos) {
 
   return lines.join("\n");
 }
-
-// --- CLI arg parsing ---
 
 export function parseArgs(argv) {
   const args = argv.slice(2);
