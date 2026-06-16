@@ -1,12 +1,31 @@
 {
-  "name": "git-bulk",
+  "name": "@quadbyte/git-bulk",
   "version": "1.0.0",
   "description": "Run git commands across multiple repos at once — status, pull, fetch, branch, and more",
-  "bin": { "git-bulk": "cli.js" },
-  "files": ["cli.js", "src.js", "README.md"],
-  "scripts": { "test": "node --test tests/*.test.mjs" },
-  "keywords": ["git", "bulk", "multi-repo", "monorepo", "cli"],
+  "bin": {
+    "git-bulk": "cli.js"
+  },
+  "files": [
+    "cli.js",
+    "src.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "keywords": [
+    "git",
+    "bulk",
+    "multi-repo",
+    "monorepo",
+    "cli"
+  ],
   "type": "module",
   "license": "MIT",
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
