@@ -8,6 +8,10 @@ export function findRepos(root, { depth = 1, ignore = [] } = {}) {
 
   function walk(dir, currentDepth) {
     if (currentDepth > depth) return;
+    if (existsSync(join(dir, ".git"))) {
+      repos.push(dir);
+    }
+    if (currentDepth === depth) return;
     let entries;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
@@ -19,15 +23,11 @@ export function findRepos(root, { depth = 1, ignore = [] } = {}) {
       if (ignore.includes(entry.name)) continue;
       if (entry.name.startsWith(".") && entry.name !== ".git") continue;
       const full = join(dir, entry.name);
-      if (existsSync(join(full, ".git"))) {
-        repos.push(full);
-      } else if (currentDepth < depth) {
-        walk(full, currentDepth + 1);
-      }
+      walk(full, currentDepth + 1);
     }
   }
 
-  walk(cwd, 1);
+  walk(cwd, 0);
   return repos.sort();
 }
 
